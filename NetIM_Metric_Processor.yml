@@ -1,0 +1,80 @@
+logging:
+  level:
+    root: 'INFO'
+    org.springframework.boot.actuate.metrics: 'DEBUG'
+#    org.springframework.integration: 'DEBUG'
+  file: /tmp/sda/logs/metric-processor.log
+  pattern:
+    file: "%-6level [%d{HH:mm:ss.SSS}] [%t] %logger{5} - %X{code} %msg %n"
+
+application:
+  logging:
+    name: 'LEGACY_LOGGER'
+    level: 0
+    debugOn: 0
+  sda-metric-processor:
+    num-threads: 7777
+  meimei_test_value:
+    mmlabel: 99
+
+springfox:
+  documentation:
+    swagger:
+      v2:
+        path=/api-docs
+spring:
+  profiles:
+    active: default
+#  boot:
+#    admin:
+#      url: http://localhost:9000
+  mvc:
+    async:
+      request-timeout: -1
+  kafka:
+    bootstrap-servers: ${KAFKA_BROKER_HOST:kafka1}:${KAFKA_BROKER_PORT:9192}
+    consumer:
+      group-id: metric-processor
+      auto-offset-reset: latest
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+# Spring Cloud Discovery
+eureka:
+  client:
+    # healthcheck.enabled must be located in application.yml (not bootstrap.yml)
+    healthcheck:
+      enabled: false # See https://github.com/spring-cloud/spring-cloud-netflix/issues/2228. https://cloud.spring.io/spring-cloud-netflix/multi/multi__service_discovery_eureka_clients.html#_eureka_s_health_checks
+
+#http://127.0.0.1:9001/jolokia/read/com.riverbed.sda.polling.loaders:*
+#http://127.0.0.1:9001/jolokia/read/com.riverbed.sda.polling.loaders:type=MetricHeaderFileLoader,name=metricHeaderFileLoader
+# JMX-HTTP REST bridge
+jolokia:
+  config:
+    debug: false
+endpoints:
+  jolokia:
+    enabled: true
+  jmx:
+    enabled: true
+#    unique-names: true
+#    domain: mp
+
+# Default topic name may be overridden on the command-line
+topic:
+  requests: ${REQUESTS_TOPIC:poller-raw-data}
+  responses: ${RESPONSES_TOPIC:poller-processed-data}
+
+banner:
+  image:
+    location: banner/banner.png
+  location: banner/banner.txt
+
+# statsd has been deprecated and can be removed
+statsd:
+  host: ${STATSD_HOST:grafana}
+  port: ${STATSD_PORT:8125}
+  prefix: ${STATSD_PREFIX:com.riverbed.metric-processor.dev}.${DROPWIZARD_REPORTER_INSTANCE_TAG:localhost}
